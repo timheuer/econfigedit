@@ -59,7 +59,8 @@
     "pretest": "npm run compile && npm run lint",
     "lint": "eslint src",
     "test": "vscode-test",
-    "copy-css": "cpy \"./src/vscode-elements.css\" \"./dist/\" --flat"
+    "copy-css": "cpy \"./src/vscode-elements.css\" \"./dist/\" --flat",
+    "package": "npm run compile && vsce package"
   },
   "devDependencies": {
     "@types/mocha": "^10.0.10",
