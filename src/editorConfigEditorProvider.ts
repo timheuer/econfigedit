@@ -13,10 +13,12 @@ export class EditorConfigEditorProvider implements vscode.CustomTextEditorProvid
         webviewPanel: vscode.WebviewPanel,
         _token: vscode.CancellationToken
     ): Promise<void> {
+        console.log('Initializing editor for document:', document.uri.toString());
+        
         webviewPanel.webview.options = {
             enableScripts: true,
             localResourceRoots: [
-                vscode.Uri.joinPath(this.context.extensionUri, 'media'),
+                vscode.Uri.joinPath(this.context.extensionUri, 'dist'),
                 vscode.Uri.joinPath(this.context.extensionUri, 'node_modules', '@vscode/codicons', 'dist')
             ]
         };
@@ -26,6 +28,7 @@ export class EditorConfigEditorProvider implements vscode.CustomTextEditorProvid
 
         function updateWebview() {
             const content = document.getText();
+            console.log('Updating webview with content length:', content.length);
             webviewPanel.webview.postMessage({
                 type: 'update',
                 content,
@@ -39,6 +42,7 @@ export class EditorConfigEditorProvider implements vscode.CustomTextEditorProvid
         // Update webview when the document changes
         const changeDocumentSubscription = vscode.workspace.onDidChangeTextDocument(e => {
             if (e.document.uri.toString() === document.uri.toString()) {
+                console.log('Document changed, updating webview');
                 updateWebview();
             }
         });
@@ -46,6 +50,7 @@ export class EditorConfigEditorProvider implements vscode.CustomTextEditorProvid
         // Handle messages from the webview
         webviewPanel.webview.onDidReceiveMessage(
             async message => {
+                console.log('Received message from webview:', message.type);
                 switch (message.type) {
                     case 'update':
                         await this.updateTextDocument(document, message.content);

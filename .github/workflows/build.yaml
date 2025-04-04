@@ -46,9 +46,6 @@ jobs:
       - name: Install vsce
         run: npm install -g @vscode/vsce
 
-      - name: Install cross-env
-        run: npm install -g cross-env
-
       - name: 🏷️ NBGV
         uses: dotnet/nbgv@master
         id: nbgv

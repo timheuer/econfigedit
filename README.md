@@ -1,71 +1,57 @@
-# econfigedit README
+# EditorConfig Editor
 
-This is the README for your extension "econfigedit". After writing up a brief description, we recommend including the following sections.
+A Visual Studio Code extension that provides a user-friendly, visual editor for `.editorconfig` files. Edit your EditorConfig settings with an intuitive interface instead of manually editing the file.
+
+![EditorConfig Editor](resources/editorconfig-editor.png)
 
 ## Features
 
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
+- 🎨 Visual editor for `.editorconfig` files
+- ✨ Intuitive interface for managing sections and properties
+- 📝 Support for all standard EditorConfig properties
+- ➕ Add custom properties easily
+- 🗂️ Manage multiple file patterns in separate sections
+- 🔄 Real-time preview of changes
 
-For example if there is an image subfolder under your extension project workspace:
+## Usage
 
-\!\[feature X\]\(images/feature-x.png\)
+1. Install the extension from the VS Code marketplace
+2. Open any `.editorconfig` file in your workspace
+3. The file will automatically open in the visual editor
+4. Use the interface to:
+   - Add new sections with file patterns
+   - Add standard EditorConfig properties
+   - Add custom properties
+   - Edit values using dropdowns for predefined options
+   - Delete properties or entire sections
 
-> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
+## Supported Properties
+
+The editor supports all standard EditorConfig properties:
+
+- `indent_style` (space, tab)
+- `indent_size` (number)
+- `tab_width` (number)
+- `end_of_line` (lf, cr, crlf)
+- `charset` (utf-8, utf-8-bom, utf-16be, utf-16le, latin1)
+- `trim_trailing_whitespace` (true, false)
+- `insert_final_newline` (true, false)
+- `max_line_length` (number)
+
+You can also add custom properties as needed.
 
 ## Requirements
 
-If you have any requirements or dependencies, add a section describing those and how to install and configure them.
+- Visual Studio Code version 1.99.0 or higher
 
-## Extension Settings
+## Contributing
 
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
+This extension is open source! We welcome contributions on our [GitHub repository](https://github.com/timheuer/econfigedit).
 
-For example:
+## License
 
-This extension contributes the following settings:
+[MIT License](LICENSE.md)
 
-* `myExtension.enable`: Enable/disable this extension.
-* `myExtension.thing`: Set to `blah` to do something.
+## Issues and Feature Requests
 
-## Known Issues
-
-Calling out known issues can help limit users opening duplicate issues against your extension.
-
-## Release Notes
-
-Users appreciate release notes as you update your extension.
-
-### 1.0.0
-
-Initial release of ...
-
-### 1.0.1
-
-Fixed issue #.
-
-### 1.1.0
-
-Added features X, Y, and Z.
-
----
-
-## Following extension guidelines
-
-Ensure that you've read through the extensions guidelines and follow the best practices for creating your extension.
-
-* [Extension Guidelines](https://code.visualstudio.com/api/references/extension-guidelines)
-
-## Working with Markdown
-
-You can author your README using Visual Studio Code. Here are some useful editor keyboard shortcuts:
-
-* Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux).
-* Toggle preview (`Shift+Cmd+V` on macOS or `Shift+Ctrl+V` on Windows and Linux).
-* Press `Ctrl+Space` (Windows, Linux, macOS) to see a list of Markdown snippets.
-
-## For more information
-
-* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
-
-**Enjoy!**
+Found a bug or have a feature request? Please file an issue on our [GitHub repository](https://github.com/timheuer/econfigedit/issues).

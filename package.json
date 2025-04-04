@@ -10,6 +10,8 @@
   "author": {
     "name": "Tim Heuer"
   },
+  "preview": true,
+  "license": "MIT",
   "qna": "https://github.com/timheuer/econfigedit/issues",
   "homepage": "https://github.com/timheuer/econfigedit#readme",
   "repository": {
@@ -18,7 +20,9 @@
   },
   "publisher": "timheuer",
   "categories": [
-    "Other"
+    "Other",
+    "Linters",
+    "Formatters"
   ],
   "badges": [
     {
@@ -41,26 +45,21 @@
         "displayName": "EditorConfig Visual Editor",
         "selector": [
           {
-            "filenamePattern": "*.editorconfig"
+            "filenamePattern": "*.editorconfig",
+            "when": "!isInDiffEditor && !isDiffEditor && !git.openDiff && !workbench.editor.showTabs && !(resourceScheme == 'git')"
           }
-        ],
-        "priority": "default"
+        ]
       }
     ]
   },
   "scripts": {
-    "vscode:prepublish": "npm run package",
-    "compile": "npm run check-types && npm run lint && node esbuild.js",
-    "watch": "npm-run-all -p watch:*",
-    "watch:esbuild": "node esbuild.js --watch",
-    "watch:tsc": "tsc --noEmit --watch --project tsconfig.json",
-    "package": "npm run check-types && npm run lint && node esbuild.js --production",
-    "compile-tests": "tsc -p . --outDir out",
-    "watch-tests": "tsc -p . -w --outDir out",
-    "pretest": "npm run compile-tests && npm run compile && npm run lint",
-    "check-types": "tsc --noEmit",
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./ && npm run copy-css",
+    "watch": "tsc -watch -p ./ && npm run copy-css",
+    "pretest": "npm run compile && npm run lint",
     "lint": "eslint src",
-    "test": "vscode-test"
+    "test": "vscode-test",
+    "copy-css": "cpy \"./src/vscode-elements.css\" \"./dist/\" --flat"
   },
   "devDependencies": {
     "@types/mocha": "^10.0.10",
@@ -70,10 +69,9 @@
     "@typescript-eslint/parser": "^8.28.0",
     "@vscode/test-cli": "^0.0.10",
     "@vscode/test-electron": "^2.4.1",
-    "esbuild": "^0.25.1",
+    "cpy-cli": "^5.0.0",
     "eslint": "^9.23.0",
     "npm-run-all": "^4.1.5",
-    "sharp": "^0.34.0",
     "typescript": "^5.8.2"
   },
   "dependencies": {
