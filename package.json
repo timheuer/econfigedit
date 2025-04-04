@@ -60,7 +60,8 @@
     "lint": "eslint src",
     "test": "vscode-test",
     "copy-css": "cpy \"./src/vscode-elements.css\" \"./dist/\" --flat",
-    "package": "npm run compile && vsce package"
+    "package": "npm run compile && vsce package",
+    "deploy": "vsce publish"
   },
   "devDependencies": {
     "@types/mocha": "^10.0.10",
