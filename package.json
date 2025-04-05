@@ -2,7 +2,7 @@
   "name": "econfigedit",
   "displayName": "EditorConfig Editor",
   "description": "A more visual editor for .editorconfig files",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "icon": "resources/editorconfig-editor.png",
   "engines": {
     "vscode": "^1.99.0"

@@ -2,7 +2,7 @@
 
 A Visual Studio Code extension that provides a user-friendly, visual editor for `.editorconfig` files. Edit your EditorConfig settings with an intuitive interface instead of manually editing the file.
 
-![EditorConfig Editor](resources/editorconfig-editor.png)
+![EditorConfig Editor](docs/screenshot.png)
 
 ## Features
 
