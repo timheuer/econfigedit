@@ -67,6 +67,17 @@ export class EditorConfigEditorProvider implements vscode.CustomTextEditorProvid
                             confirmed: choice === 'Yes'
                         });
                         break;
+                    case 'okcancel':
+                        const okCancelChoice = await vscode.window.showWarningMessage(
+                            message.message,
+                            { modal: true },
+                            'OK'
+                        );
+                        webviewPanel.webview.postMessage({
+                            type: 'okcancelResponse',
+                            confirmed: okCancelChoice === 'OK'
+                        });
+                        break;
                 }
             },
             undefined,

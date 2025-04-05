@@ -384,7 +384,7 @@ export function getWebviewContent(webview: vscode.Webview, extensionUri: vscode.
                         
                         if (exists) {
                             vscode.postMessage({
-                                type: 'confirm',
+                                type: 'okcancel',
                                 message: 'Property "' + selectedProp + '" already exists in this section.'
                             });
                             return;
