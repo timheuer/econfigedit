@@ -25,6 +25,17 @@ A Visual Studio Code extension that provides a user-friendly, visual editor for 
    - Edit values using dropdowns for predefined options
    - Delete properties or entire sections
 
+### Configuration Options
+
+Because this doesn't work well in 'diff' views, I recommend having this as your workspace or user settings:
+```json
+"workbench.editorAssociations": {
+   "{git}:/**/*.{editorconfig}": "default",
+   "*.editorconfig": "timheuer.econfigedit"
+}
+```
+This will enable it to be default editor for times when not in git-diff modes.
+
 ## Supported Properties
 
 The editor supports all standard EditorConfig properties:
