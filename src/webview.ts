@@ -251,11 +251,23 @@ export function getWebviewContent(webview: vscode.Webview, extensionUri: vscode.
                     });
                 }
 
+                // Helper for focus/blur event logic to avoid repetition
+                function attachFocusBlurEvents(element, onBlurCallback) {
+                    element.addEventListener('focus', () => element._rowHasFocus = true);
+                    element.addEventListener('blur', () => {
+                        element._rowHasFocus = false;
+                        setTimeout(() => {
+                            if (!element._rowHasFocus) {
+                                onBlurCallback();
+                            }
+                        }, 100);
+                    });
+                }
+
                 function createPropertyRow(name, value, parentElement, isCustom = false) {
                     const row = document.createElement('div');
                     row.className = 'property-row';
-                    let rowHasFocus = false;
-                    
+                    // rowHasFocus is now tracked per input/select via _rowHasFocus
                     let nameInput;
                     if (isCustom) {
                         nameInput = document.createElement('input');
@@ -263,16 +275,7 @@ export function getWebviewContent(webview: vscode.Webview, extensionUri: vscode.
                         nameInput.type = 'text';
                         nameInput.value = name || '';
                         nameInput.placeholder = 'Property name';
-                        nameInput.addEventListener('focus', () => rowHasFocus = true);
-                        nameInput.addEventListener('blur', () => {
-                            rowHasFocus = false;
-                            // Give other elements in the row a chance to get focus
-                            setTimeout(() => {
-                                if (!rowHasFocus) {
-                                    updateDocument();
-                                }
-                            }, 100);
-                        });
+                        attachFocusBlurEvents(nameInput, updateDocument);
                         row.appendChild(nameInput);
                     } else {
                         const nameSpan = document.createElement('div');
@@ -280,37 +283,19 @@ export function getWebviewContent(webview: vscode.Webview, extensionUri: vscode.
                         nameSpan.textContent = name;
                         row.appendChild(nameSpan);
                     }
-                    
+
                     const valueContainer = document.createElement('div');
                     valueContainer.className = 'property-value';
-                    
+
                     if (isCustom || !propertyOptions[name]) {
                         const input = document.createElement('input');
                         input.type = 'text';
                         input.value = value || '';
-                        input.addEventListener('focus', () => rowHasFocus = true);
-                        input.addEventListener('blur', () => {
-                            rowHasFocus = false;
-                            // Give other elements in the row a chance to get focus
-                            setTimeout(() => {
-                                if (!rowHasFocus) {
-                                    updateDocument();
-                                }
-                            }, 100);
-                        });
+                        attachFocusBlurEvents(input, updateDocument);
                         valueContainer.appendChild(input);
                     } else if (Array.isArray(propertyOptions[name])) {
                         const select = document.createElement('select');
-                        select.addEventListener('focus', () => rowHasFocus = true);
-                        select.addEventListener('blur', () => {
-                            rowHasFocus = false;
-                            // Give other elements in the row a chance to get focus
-                            setTimeout(() => {
-                                if (!rowHasFocus) {
-                                    updateDocument();
-                                }
-                            }, 100);
-                        });
+                        attachFocusBlurEvents(select, updateDocument);
                         // Update immediately on change for dropdowns
                         select.addEventListener('change', updateDocument);
                         propertyOptions[name].forEach(option => {
@@ -325,32 +310,24 @@ export function getWebviewContent(webview: vscode.Webview, extensionUri: vscode.
                         const input = document.createElement('input');
                         input.type = propertyOptions[name] === 'number' ? 'number' : 'text';
                         input.value = value || '';
-                        input.addEventListener('focus', () => rowHasFocus = true);
-                        input.addEventListener('blur', () => {
-                            rowHasFocus = false;
-                            // Give other elements in the row a chance to get focus
-                            setTimeout(() => {
-                                if (!rowHasFocus) {
-                                    updateDocument();
-                                }
-                            }, 100);
-                        });
+                        attachFocusBlurEvents(input, updateDocument);
                         valueContainer.appendChild(input);
                     }
-                    
+
                     const removeBtn = document.createElement('button');
                     removeBtn.className = 'delete-btn';
                     removeBtn.innerHTML = '<i class="codicon codicon-trash"></i>';
                     removeBtn.title = 'Delete property';
                     removeBtn.addEventListener('click', async () => {
                         const propertyName = isCustom ? (nameInput?.value || 'this property') : name;
-                        const confirmed = await confirmDelete(\`Are you sure you want to delete \${propertyName}?\`);
+                        // Use single quotes and string concatenation to avoid TypeScript parsing issues
+                        const confirmed = await confirmDelete('Are you sure you want to delete ' + propertyName + '?');
                         if (confirmed) {
                             row.remove();
                             updateDocument();
                         }
                     });
-                    
+
                     row.appendChild(valueContainer);
                     row.appendChild(removeBtn);
                     parentElement.appendChild(row);
@@ -448,7 +425,8 @@ export function getWebviewContent(webview: vscode.Webview, extensionUri: vscode.
                     removeBtn.addEventListener('click', async (e) => {
                         e.stopPropagation();
                         const sectionName = globInput.value || 'this section';
-                        const confirmed = await confirmDelete(\`Are you sure you want to delete \${sectionName}?\`);
+                        // Use single quotes and string concatenation to avoid TypeScript parsing issues
+                        const confirmed = await confirmDelete('Are you sure you want to delete ' + sectionName + '?');
                         if (confirmed) {
                             section.remove();
                             updateDocument();
@@ -533,23 +511,30 @@ export function getWebviewContent(webview: vscode.Webview, extensionUri: vscode.
                     switch (message.type) {
                         case 'update':
                             document.getElementById('sections').innerHTML = '';
-                            
+
                             const lines = message.content.split('\\n');
                             let currentSection = null;
-                            
+
                             lines.forEach(line => {
                                 line = line.trim();
                                 if (!line || line === 'root = true') return;
-                                
+
+                                // Section header line
                                 if (line.startsWith('[') && line.endsWith(']')) {
                                     const glob = line.slice(1, -1);
                                     addSection(glob);
                                     currentSection = document.querySelector('.section:last-child .section-properties');
                                 } else if (currentSection && line.includes('=')) {
-                                    const [name, value] = line.split('=').map(s => s.trim());
+                                    // Property line, with error handling for malformed lines
+                                    const eqIdx = line.indexOf('=');
+                                    if (eqIdx === -1) return; // skip malformed
+                                    const name = line.slice(0, eqIdx).trim();
+                                    const value = line.slice(eqIdx + 1).trim();
+                                    if (!name) return; // skip malformed
                                     const isCustom = !(name in propertyOptions);
                                     createPropertyRow(name, value, currentSection, isCustom);
                                 }
+                                // else ignore malformed lines
                             });
                             break;
                     }
