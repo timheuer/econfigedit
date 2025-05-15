@@ -226,6 +226,10 @@ export function getWebviewContent(webview: vscode.Webview, extensionUri: vscode.
                 .property-row.filtered {
                     display: none;
                 }
+
+                .section.filtered {
+                    display: none;
+                }
             </style>
         </head>
         <body>
@@ -573,20 +577,33 @@ export function getWebviewContent(webview: vscode.Webview, extensionUri: vscode.
 
                 function filterProperties(searchText) {
                     const normalized = searchText.toLowerCase();
-                    document.querySelectorAll('.property-row').forEach(row => {
-                        const nameElement = row.querySelector('.property-name');
-                        if (!nameElement) return;
+                    document.querySelectorAll('.section').forEach(section => {
+                        let hasVisibleProperties = false;
+                        
+                        section.querySelectorAll('.property-row').forEach(row => {
+                            const nameElement = row.querySelector('.property-name');
+                            if (!nameElement) return;
 
-                        const name = nameElement.tagName.toLowerCase() === 'input' 
-                            ? nameElement.value 
-                            : nameElement.textContent;
+                            const name = nameElement.tagName.toLowerCase() === 'input' 
+                                ? nameElement.value 
+                                : nameElement.textContent;
 
-                        if (!name) return;
+                            if (!name) return;
 
-                        if (name.toLowerCase().includes(normalized)) {
-                            row.classList.remove('filtered');
+                            const matches = name.toLowerCase().includes(normalized);
+                            if (matches) {
+                                row.classList.remove('filtered');
+                                hasVisibleProperties = true;
+                            } else {
+                                row.classList.add('filtered');
+                            }
+                        });
+
+                        // Hide section if it has no visible properties
+                        if (hasVisibleProperties || !searchText) {
+                            section.classList.remove('filtered');
                         } else {
-                            row.classList.add('filtered');
+                            section.classList.add('filtered');
                         }
                     });
                 }
