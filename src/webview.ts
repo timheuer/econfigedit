@@ -205,9 +205,34 @@ export function getWebviewContent(webview: vscode.Webview, extensionUri: vscode.
                     font-style: italic;
                     color: var(--vscode-descriptionForeground);
                 }
+
+                .filter-container {
+                    margin-bottom: 1rem;
+                    display: flex;
+                    align-items: center;
+                    gap: 0.5rem;
+                }
+
+                .filter-container input {
+                    flex: 1;
+                }
+
+                .filter-container .filter-icon {
+                    color: var(--vscode-input-placeholderForeground);
+                    display: flex;
+                    align-items: center;
+                }
+
+                .property-row.filtered {
+                    display: none;
+                }
             </style>
         </head>
         <body>
+            <div class="filter-container">
+                <span class="filter-icon"><i class="codicon codicon-filter"></i></span>
+                <input type="text" id="propertyFilter" placeholder="Filter properties..." />
+            </div>
             <div id="sections"></div>
             <div class="actions-container">
                 <button id="addSectionBtn" class="vscode-button">
@@ -536,8 +561,46 @@ export function getWebviewContent(webview: vscode.Webview, extensionUri: vscode.
                                 }
                                 // else ignore malformed lines
                             });
+
+                            // Apply current filter if it exists
+                            const filterInput = document.getElementById('propertyFilter');
+                            if (filterInput?.value) {
+                                filterProperties(filterInput.value);
+                            }
                             break;
                     }
+                });
+
+                function filterProperties(searchText) {
+                    const normalized = searchText.toLowerCase();
+                    document.querySelectorAll('.property-row').forEach(row => {
+                        const nameElement = row.querySelector('.property-name');
+                        if (!nameElement) return;
+
+                        const name = nameElement.tagName.toLowerCase() === 'input' 
+                            ? nameElement.value 
+                            : nameElement.textContent;
+
+                        if (!name) return;
+
+                        if (name.toLowerCase().includes(normalized)) {
+                            row.classList.remove('filtered');
+                        } else {
+                            row.classList.add('filtered');
+                        }
+                    });
+                }
+
+                document.addEventListener('DOMContentLoaded', () => {
+                    console.log('Webview DOM loaded');
+                    document.getElementById('addSectionBtn').addEventListener('click', () => addSection());
+
+                    // Add filter input handler
+                    const filterInput = document.getElementById('propertyFilter');
+                    filterInput?.addEventListener('input', (e) => {
+                        const target = e.target;
+                        filterProperties(target.value);
+                    });
                 });
             </script>
         </body>
