@@ -6,8 +6,6 @@ export function getWebviewContent(webview: vscode.Webview, extensionUri: vscode.
     const styleUri = webview.asWebviewUri(vscode.Uri.joinPath(extensionUri, 'dist', 'vscode-elements.css'));
     const codiconUri = webview.asWebviewUri(vscode.Uri.joinPath(extensionUri, 'node_modules', '@vscode/codicons', 'dist', 'codicon.css'));
 
-    console.log('Webview URIs:', { styleUri: styleUri.toString(), codiconUri: codiconUri.toString() });
-
     return `<!DOCTYPE html>
         <html lang="en">
         <head>
@@ -80,7 +78,7 @@ export function getWebviewContent(webview: vscode.Webview, extensionUri: vscode.
 
                 .property-row {
                     display: grid;
-                    grid-template-columns: 200px 1fr auto;
+                    grid-template-columns: minmax(140px, 220px) 1fr auto;
                     gap: 0.5rem;
                     align-items: center;
                     min-height: 24px;
@@ -89,11 +87,11 @@ export function getWebviewContent(webview: vscode.Webview, extensionUri: vscode.
 
                 .property-controls {
                     display: grid;
-                    grid-template-columns: 200px auto auto;
+                    grid-template-columns: minmax(140px, 220px) auto auto;
                     gap: 0.5rem;
                     align-items: center;
                     padding: 0.5rem;
-                    background: var(--vscode-toolbar-activeBackground);
+                    background: var(--vscode-editorWidget-background);
                     border-radius: 2px;
                     margin-top: 0.5rem;
                 }
@@ -156,6 +154,15 @@ export function getWebviewContent(webview: vscode.Webview, extensionUri: vscode.
 
                 .delete-btn .codicon {
                     font-size: 16px;
+                }
+
+                .property-row .delete-btn {
+                    visibility: hidden;
+                }
+
+                .property-row:hover .delete-btn,
+                .property-row:focus-within .delete-btn {
+                    visibility: visible;
                 }
 
                 .actions-container {
@@ -338,6 +345,9 @@ export function getWebviewContent(webview: vscode.Webview, extensionUri: vscode.
                     } else {
                         const input = document.createElement('input');
                         input.type = propertyOptions[name] === 'number' ? 'number' : 'text';
+                        if (propertyOptions[name] === 'number') {
+                            input.min = '1';
+                        }
                         input.value = value || '';
                         attachFocusBlurEvents(input, updateDocument);
                         valueContainer.appendChild(input);
@@ -441,6 +451,8 @@ export function getWebviewContent(webview: vscode.Webview, extensionUri: vscode.
                     const globInput = document.createElement('input');
                     globInput.value = glob;
                     globInput.placeholder = 'File pattern (e.g., *.js)';
+                    attachFocusBlurEvents(globInput, updateDocument);
+                    globInput.addEventListener('input', updateDocument);
                     
                     // Only prevent event bubbling
                     globInput.addEventListener('click', e => {
@@ -522,23 +534,23 @@ export function getWebviewContent(webview: vscode.Webview, extensionUri: vscode.
                             type: 'update',
                             content: content
                         });
+
+                        lastKnownContent = content;
                         
                         updateDocument.timeout = null;
                     }, 300);
                 }
 
-                document.addEventListener('DOMContentLoaded', () => {
-                    console.log('Webview DOM loaded');
-                    document.getElementById('addSectionBtn').addEventListener('click', () => addSection());
-                });
-
-                console.log('Webview script loaded');
+                let lastKnownContent = '';
 
                 window.addEventListener('message', event => {
-                    console.log('Received message in webview:', event.data.type);
                     const message = event.data;
                     switch (message.type) {
                         case 'update':
+                            if (message.content === lastKnownContent) {
+                                break;
+                            }
+                            const collapsedSectionStates = Array.from(document.querySelectorAll('.section')).map(section => section.classList.contains('collapsed'));
                             document.getElementById('sections').innerHTML = '';
 
                             const lines = message.content.split('\\n');
@@ -566,6 +578,14 @@ export function getWebviewContent(webview: vscode.Webview, extensionUri: vscode.
                                 // else ignore malformed lines
                             });
 
+                            const sectionsList = Array.from(document.querySelectorAll('.section'));
+                            collapsedSectionStates.forEach((isCollapsed, index) => {
+                                if (isCollapsed && sectionsList[index]) {
+                                    sectionsList[index].classList.add('collapsed');
+                                }
+                            });
+                            lastKnownContent = message.content;
+
                             // Apply current filter if it exists
                             const filterInput = document.getElementById('propertyFilter');
                             if (filterInput?.value) {
@@ -579,18 +599,26 @@ export function getWebviewContent(webview: vscode.Webview, extensionUri: vscode.
                     const normalized = searchText.toLowerCase();
                     document.querySelectorAll('.section').forEach(section => {
                         let hasVisibleProperties = false;
+                        const globInput = section.querySelector('.section-header input');
+                        const globValue = globInput?.value?.toLowerCase() || '';
+                        const globMatches = globValue.includes(normalized);
                         
                         section.querySelectorAll('.property-row').forEach(row => {
                             const nameElement = row.querySelector('.property-name');
                             if (!nameElement) return;
 
+                            const valueElement = row.querySelector('select, input:not(.property-name)');
                             const name = nameElement.tagName.toLowerCase() === 'input' 
                                 ? nameElement.value 
                                 : nameElement.textContent;
+                            const value = valueElement?.value || '';
 
                             if (!name) return;
 
-                            const matches = name.toLowerCase().includes(normalized);
+                            const matches = !searchText
+                                || globMatches
+                                || name.toLowerCase().includes(normalized)
+                                || value.toLowerCase().includes(normalized);
                             if (matches) {
                                 row.classList.remove('filtered');
                                 hasVisibleProperties = true;
@@ -609,7 +637,6 @@ export function getWebviewContent(webview: vscode.Webview, extensionUri: vscode.
                 }
 
                 document.addEventListener('DOMContentLoaded', () => {
-                    console.log('Webview DOM loaded');
                     document.getElementById('addSectionBtn').addEventListener('click', () => addSection());
 
                     // Add filter input handler
